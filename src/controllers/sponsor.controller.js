@@ -30,7 +30,6 @@ module.exports = {
   },
   async destroy(req,res) {
     const  { sponsorId } = req.params;
-    console.log(sponsorId);
     try {
       const sponsor = await Sponsor.findByIdAndDelete(sponsorId)
       if(!sponsor){
