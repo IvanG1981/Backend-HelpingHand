@@ -22,6 +22,10 @@ const sponsorSchema = new Schema({
     type: String,
     required: true,
     minlength: 4
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null
   }
 },{
   timestamps: true
