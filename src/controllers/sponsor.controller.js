@@ -2,6 +2,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cryptRandomString = require('crypto-random-string');
 const Sponsor = require('../models/sponsor.model');
+const {
+  transporter,
+  welcome,
+  removeAccount,
+  sendResetEmail,
+  confirmPasswordUpdate
+} = require('../utils/mailer');
 
 
 module.exports = {
@@ -44,11 +51,11 @@ module.exports = {
         process.env.SECRET,
         { expiresIn: 60 * 60 * 24 },
       );
-
+      await transporter.sendMail(welcome(sponsor))
       res.status(201).json( { token } )
     }
     catch(err) {
-      res.status(400).json({ message: err.message })
+      res.status(400).json( { message: err.message } )
     }
   },
   async signin(req, res) {
@@ -76,10 +83,13 @@ module.exports = {
   async destroy(req,res) {
     try {
       const id = req.userId;
-      const sponsor = await Sponsor.findByIdAndDelete(id)
+      const sponsor = await Sponsor.findById(id)
+      const { email } = sponsor
       if(!sponsor) {
         throw new Error('Sponsor not found in the database')
       }
+      await Sponsor.deleteOne( { _id: id } );
+      await transporter.sendMail(removeAccount(email))
       res.status(200).json( { message: 'Sponsor Deleted', data: sponsor } )
     }
     catch(err) {
@@ -90,10 +100,74 @@ module.exports = {
     try {
       const id = req.userId;
       const sponsor = await Sponsor.findByIdAndUpdate( id, req.body, { new: true, runValidators: true } )
-      if(!sponsor){
+      if(!sponsor) {
         throw new Error('Sponsor not found')
       }
       res.status(200).json( { message: 'Sponsor Information Updated', data: sponsor } )
+    }
+    catch(err) {
+      res.status(400).json( { message: err.message } )
+    }
+  },
+  async resetEmail(req, res) {
+    if(req.body.email === '') {
+      res.status(400).send('email required')
+    }
+    try {
+      const token = cryptRandomString( { length: 10 } )
+      const sponsor = await Sponsor.findOneAndUpdate(
+        { email: req.body.email },
+        { resetPasswordToken: token }
+      )
+      if(!sponsor) {
+        throw new Error('Cannot find email in database')
+      }
+      else {
+        const { email } = sponsor
+        await transporter.sendMail( sendResetEmail( email, token ) )
+        res.status(200).json( { message: 'recovery email sent '} )
+      }
+    }
+    catch(err) {
+      res.status(400).json( { message: err.message } )
+    }
+  },
+  async resetConfirm(req, res) {
+    try {
+      const { resetPasswordToken } = req.params;
+      const sponsor = await Sponsor.findOne( { resetPasswordToken } );
+      if(!sponsor) {
+        throw new Error('password reset is invalid or expired');
+      }
+      res.status(200).json( { message: 'password reset link is ok', data: sponsor.email } );
+    }
+    catch(err) {
+      res.status(400).json( { message: err.message } )
+    }
+  },
+  async updatePassword(req, res) {
+    const { email, password } = req.body;
+    try {
+      if(password.length < 4 || password.length > 8) {
+        throw new Error('Your password must be between 4 and 8 characters long');
+      }
+      const sponsor = await Sponsor.findOne( { email } )
+      const { _id } = sponsor;
+      if(!sponsor) {
+        throw new Error('Invalid Email')
+      }
+      else {
+        const encPassword = await bcrypt.hash( password, 8 );
+        await Sponsor.findOneAndUpdate(
+          { _id: _id },
+          {
+            resetPasswordToken: null,
+            password: encPassword
+          }
+        )
+      }
+      await transporter.sendMail( confirmPasswordUpdate( email ) )
+      res.status(200).json( { message: 'Password Updated!' } )
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
