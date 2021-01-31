@@ -15,6 +15,7 @@ module.exports = {
   async list(req, res) {
     try {
       const sponsors = await Sponsor.find()
+                                    .select('-password')
       if( sponsors.length === 0 ) {
         throw new Error('Could not find any sponsors')
       }
@@ -28,6 +29,7 @@ module.exports = {
     try {
       const id = req.userId;
       const sponsor = await Sponsor.findById(id)
+                                   .select('-password')
       if(!sponsor) {
         throw new Error('Sponsor not found in the database')
       }
@@ -84,6 +86,7 @@ module.exports = {
     try {
       const id = req.userId;
       const sponsor = await Sponsor.findById(id)
+                                   .slect('-password')
       const { email } = sponsor
       if(!sponsor) {
         throw new Error('Sponsor not found in the database')
@@ -99,11 +102,21 @@ module.exports = {
   async update(req, res) {
     try {
       const id = req.userId;
-      const sponsor = await Sponsor.findByIdAndUpdate( id, req.body, { new: true, runValidators: true } )
+      const sponsor = await Sponsor
+                              .findByIdAndUpdate(
+                                                  id,
+                                                  req.body,
+                                                  {
+                                                    new: true,
+                                                    runValidators: true
+                                                  }
+                                                )
+                              .select('-password')
       if(!sponsor) {
         throw new Error('Sponsor not found')
       }
-      res.status(200).json( { message: 'Sponsor Information Updated', data: sponsor } )
+      res.status(200).json( { message: 'Sponsor Information Updated',
+                              data: sponsor } )
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
@@ -139,7 +152,8 @@ module.exports = {
       if(!sponsor) {
         throw new Error('password reset is invalid or expired');
       }
-      res.status(200).json( { message: 'password reset link is ok', data: sponsor.email } );
+      res.status(200).json( { message: 'password reset link is ok',
+                              data: sponsor.email } );
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
