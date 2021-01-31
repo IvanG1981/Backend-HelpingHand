@@ -86,7 +86,7 @@ module.exports = {
     try {
       const id = req.userId;
       const sponsor = await Sponsor.findById(id)
-                                   .slect('-password')
+                                   .select('-password')
       const { email } = sponsor
       if(!sponsor) {
         throw new Error('Sponsor not found in the database')
