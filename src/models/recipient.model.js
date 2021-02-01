@@ -21,6 +21,12 @@ const recipientSchema = new Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  contributions: {
+    type: [{type: Schema.Types.ObjectId,
+    ref: 'Contribution'
+    }],
+    required: true,
   }
 },{
   timestamps: true

@@ -26,6 +26,12 @@ const sponsorSchema = new Schema({
   resetPasswordToken: {
     type: String,
     default: null
+  },
+  contributions: {
+    type: [{type: Schema.Types.ObjectId,
+    ref: 'Contribution'
+    }],
+    required: true
   }
 },{
   timestamps: true

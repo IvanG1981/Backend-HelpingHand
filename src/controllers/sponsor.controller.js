@@ -16,6 +16,17 @@ module.exports = {
     try {
       const sponsors = await Sponsor.find()
                                     .select('-password')
+                                    .populate
+                                      (
+                                        {
+                                          path: 'contributions',
+                                          select: 'amount receiver emitter invoiceNumber',
+                                          populate: {
+                                            path: 'receiver',
+                                            select: 'name'
+                                          }
+                                        }
+                                      )
       if( sponsors.length === 0 ) {
         throw new Error('Could not find any sponsors')
       }

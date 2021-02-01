@@ -9,6 +9,17 @@ module.exports = {
   async list(req, res) {
     try {
       const recipients = await Recipient.find()
+                                        .populate
+                                          (
+                                            {
+                                              path: 'contributions',
+                                              select: 'amount receiver emitter invoiceNumber',
+                                              populate: {
+                                                path: 'emitter',
+                                                select: 'email'
+                                              }
+                                            }
+                                          )
       if( recipients.length === 0 ){
         throw new Error( 'Could not find recipients' )
       }
@@ -61,24 +72,6 @@ module.exports = {
       res.status(400).json( { message: err.message } );
     }
   },
-  async updateNeed(req, res) {
-    try {
-      const { recipientId } = req.params;
-      const { need } = req.body;
-      const recipient = await Recipient.findById( recipientId );
-      const updatedNeed = recipient.need - need;
-      await Recipient.findOneAndUpdate(
-        { _id: recipientId },
-        {
-          need: updatedNeed
-        }
-      )
-      res.status(200).json( { message: 'Recipient Need Updated!' } )
-    }
-    catch(err) {
-      res.status(400).json( { message: err.message } )
-    }
-  },
   async destroy(req,res) {
     try {
       const { recipientId }= req.params;
@@ -102,6 +95,17 @@ module.exports = {
     try {
       const { recipientId }= req.params;
       const recipient = await Recipient.findById(recipientId)
+                                       .populate
+                                          (
+                                            {
+                                              path: 'contributions',
+                                              select: 'amount receiver emitter invoiceNumber',
+                                              populate: {
+                                                path: 'emitter',
+                                                select: 'email'
+                                              }
+                                            }
+                                          )
       if(!recipient) {
         throw new Error('Recipient not found in the database')
       }
