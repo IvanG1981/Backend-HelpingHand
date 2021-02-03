@@ -35,7 +35,7 @@ module.exports = {
       res.status(400).json( { message: err.message } )
     }
   },
-async list(req, res) {
+  async list(req, res) {
     try {
       const id = req.userId;
       const admin = await Admin.findById(id)
@@ -59,6 +59,14 @@ async list(req, res) {
       }
       res.status(200).json( { message: 'Contributions found',
                               data: contributions } )
+    }
+    catch(err) {
+      res.status(400).json( { message: err.message } )
+    }
+  },
+  async createMobileContribution(req, res){
+    try {
+      res.status(200).json( { message: 'Payment Created', data: req.body } )
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
