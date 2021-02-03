@@ -64,7 +64,7 @@ module.exports = {
         process.env.SECRET,
         { expiresIn: 60 * 60 * 24 },
       );
-      await transporter.sendMail(welcome(sponsor))
+      // await transporter.sendMail(welcome(sponsor))
       res.status(201).json( { token } )
     }
     catch(err) {
@@ -103,7 +103,7 @@ module.exports = {
         throw new Error('Sponsor not found in the database')
       }
       await Sponsor.deleteOne( { _id: id } );
-      await transporter.sendMail(removeAccount(email))
+      // await transporter.sendMail(removeAccount(email))
       res.status(200).json( { message: 'Sponsor Deleted', data: sponsor } )
     }
     catch(err) {
