@@ -6,6 +6,11 @@ var epayco = require('epayco-sdk-node')({
 })
 
 exports.mobileEpayco = async ( req, res, next ) => {
+  const description = "Voluntary contribution";
+  const tax = '0';
+  const tax_base = '0';
+  const currency = 'COP';
+
   try {
     const { number, exp_year, exp_month, cvc } = req.body;
 
@@ -30,12 +35,7 @@ exports.mobileEpayco = async ( req, res, next ) => {
     const {
       doc_type,
       doc_number,
-      bill,
-      description,
       value,
-      tax,
-      tax_base,
-      currency,
       dues,
     } = req.body
 
@@ -44,7 +44,6 @@ exports.mobileEpayco = async ( req, res, next ) => {
       customer_id: customer_id,
       doc_type,
       doc_number,
-      bill,
       description,
       value,
       tax,
