@@ -22,6 +22,11 @@ const recipientSchema = new Schema({
     required: true,
     default: 0
   },
+  accumulated: {
+    type: Number,
+    required: true,
+    default: 0
+  },
   contributions: {
     type: [{type: Schema.Types.ObjectId,
     ref: 'Contribution'
