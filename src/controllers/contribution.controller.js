@@ -5,36 +5,6 @@ const Admin = require('../models/admin.model');
 
 
 module.exports = {
-  async create( req, res) {
-    try {
-      const { recipientId } = req.params;
-      const sponsorId = req.userId;
-      const sponsor = await Sponsor.findById( sponsorId )
-      const recipient = await Recipient.findById( recipientId )
-      const contribution = await Contribution.create(
-        {
-          ...req.body,
-          receiver: recipient,
-          emitter: sponsor,
-        }
-      )
-      sponsor.contributions.push( contribution )
-      recipient.contributions.push( contribution )
-      await sponsor.save( { validateBeforeSave: false } )
-      await recipient.save( { validateBeforeSave: false } )
-      const updatedNeed = recipient.need - req.body.amount
-      await Recipient.findOneAndUpdate(
-        { _id: recipientId },
-        {
-          need: updatedNeed
-        }
-      )
-      res.status(201).json( { message: 'Contribution Created-Recipient Need updated', data: contribution } )
-    }
-    catch(err) {
-      res.status(400).json( { message: err.message } )
-    }
-  },
   async list(req, res) {
     try {
       const id = req.userId;
@@ -57,8 +27,12 @@ module.exports = {
       if( contributions.length === 0 ){
         throw new Error( 'Could not find contributions' )
       }
-      res.status(200).json( { message: 'Contributions found',
-                              data: contributions } )
+      res.status(200).json(
+        {
+          message: 'Contributions found',
+          data: contributions
+        }
+      )
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
@@ -66,7 +40,29 @@ module.exports = {
   },
   async createMobileContribution(req, res){
     try {
-      res.status(200).json( { message: 'Payment Created', data: req.body } )
+      const { recipientId } = req.params;
+      const sponsorId = req.userId;
+      const recipient = await Recipient.findById(recipientId);
+      const sponsor = await Sponsor.findById(sponsorId);
+      const { ref_payco, valor } = req.body.data;
+      const contribution = await Contribution.create({
+        amount: valor,
+        receiver: recipient,
+        emitter: sponsor,
+        invoiceNumber: ref_payco
+      })
+
+      sponsor.contributions.push(contribution)
+      recipient.contributions.push(contribution)
+      await sponsor.save( { validateBeforeSave: false } )
+      await recipient.save( { validateBeforeSave: false } )
+
+      const updateAccumulated = recipient.accumulated + contribution.amount;
+      await Recipient.findOneAndUpdate(
+        { _id: recipientId },
+        { accumulated: updateAccumulated }
+      )
+      res.status(200).json( { message: 'Contribution Created-Recipient Accumulated updated' } )
     }
     catch(err) {
       res.status(400).json( { message: err.message } )
