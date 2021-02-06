@@ -41,6 +41,17 @@ module.exports = {
       const id = req.userId;
       const sponsor = await Sponsor.findById(id)
                                    .select('-password')
+                                   .populate
+                                      (
+                                        {
+                                          path: 'contributions',
+                                          select: 'amount receiver emitter invoiceNumber',
+                                          populate: {
+                                            path: 'receiver',
+                                            select: 'name'
+                                          }
+                                        }
+                                      )
       if(!sponsor) {
         throw new Error('Sponsor not found in the database')
       }
