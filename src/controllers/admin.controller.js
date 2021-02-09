@@ -6,6 +6,10 @@ const Admin = require('../models/admin.model');
 module.exports = {
   async signup( req, res) {
     try {
+      const admins = await Admin.find();
+      if( admins.length > 5) {
+        throw new Error('Admins team is full')
+      }
       const { email, password } = req.body;
       if(password.length < 4 || password.length > 8) {
         throw new Error('Your password must be between 4 and 8 characters long');
