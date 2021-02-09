@@ -33,12 +33,12 @@ module.exports = {
   async create(req, res) {
     try {
       const id = req.userId;
-      const { name, bio, need } = req.body;
+      const { name, bio, need, profileImage } = req.body;
       const admin = await Admin.findById(id)
       if(!admin){
         throw new Error('User does not exist in Administrator Database')
       }
-      const recipient = await Recipient.create( { name, bio, need } );
+      const recipient = await Recipient.create( { name, bio, need, profileImage } );
       res.status(200).json( { message: 'Recipient Created',
                               data: recipient } );
     }
